@@ -11,8 +11,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -20,6 +22,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -44,6 +47,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Format email tidak valid';
+    }
+    return null;
+  }
+
+  // Validasi nomor telepon
+  String? _validatePhone(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Nomor telepon tidak boleh kosong';
+    }
+    final phone = value.trim();
+    if (!RegExp(r'^[0-9]+$').hasMatch(phone)) {
+      return 'Nomor telepon hanya boleh berisi angka';
+    }
+    if (phone.length < 10) {
+      return 'Nomor telepon minimal 10 digit';
+    }
+    if (phone.length > 13) {
+      return 'Nomor telepon maksimal 13 digit';
     }
     return null;
   }
@@ -84,6 +105,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       });
       // Simulasi proses registrasi
       Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
         setState(() {
           _isLoading = false;
         });
@@ -94,7 +116,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             title: const Text('Registrasi Berhasil'),
             content: Text(
               'Selamat, ${_nameController.text}!\n'
-                  'Email: ${_emailController.text}',
+                  'Email: ${_emailController.text}\n'
+                  'Nomor Telepon: ${_phoneController.text}',
             ),
             actions: [
               TextButton(
@@ -116,6 +139,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _formKey.currentState!.reset();
     _nameController.clear();
     _emailController.clear();
+    _phoneController.clear();
     _passwordController.clear();
     _confirmPasswordController.clear();
   }
@@ -172,6 +196,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   prefixIcon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
                   validator: _validateEmail,
+                ),
+                // Field Nomor Telepon
+                CustomTextField(
+                  controller: _phoneController,
+                  label: 'Nomor Telepon',
+                  hint: 'Masukkan nomor telepon Anda',
+                  prefixIcon: Icons.phone,
+                  keyboardType: TextInputType.phone,
+                  validator: _validatePhone,
                 ),
                 // Field Password
                 Padding(
@@ -242,13 +275,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text('Daftar', style: TextStyle(fontSize: 16)),
                 ),
                 const SizedBox(height: 12),
@@ -269,4 +302,3 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 }
-
