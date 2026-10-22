@@ -24,6 +24,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String? _selectedGender;
   bool _agreeToTerms = false;
   String? _termsError;
+  int _passwordStrength = 0;
 
   @override
   void dispose() {
@@ -127,6 +128,45 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return '$day-$month-${date.year}';
   }
 
+  // Latihan 5: hitung kekuatan password
+  int _calculatePasswordStrength(String value) {
+    if (value.isEmpty) return 0;
+    final hasLetter = RegExp(r'[A-Za-z]').hasMatch(value);
+    final hasDigit = RegExp(r'[0-9]').hasMatch(value);
+    final hasUpper = RegExp(r'[A-Z]').hasMatch(value);
+    final hasLower = RegExp(r'[a-z]').hasMatch(value);
+    final hasSymbol = RegExp(r'[^A-Za-z0-9]').hasMatch(value);
+    if (value.length >= 8 && hasUpper && hasLower && hasDigit && hasSymbol) {
+      return 3;
+    }
+    if (value.length >= 8 && hasLetter && hasDigit) {
+      return 2;
+    }
+    return 1;
+  }
+
+  Color get _passwordStrengthColor {
+    switch (_passwordStrength) {
+      case 3:
+        return Colors.green;
+      case 2:
+        return Colors.orange;
+      default:
+        return Colors.red;
+    }
+  }
+
+  String get _passwordStrengthLabel {
+    switch (_passwordStrength) {
+      case 3:
+        return 'Kuat';
+      case 2:
+        return 'Sedang';
+      default:
+        return 'Lemah';
+    }
+  }
+
   // Handler submit form
   void _submitForm() {
     final isFormValid = _formKey.currentState!.validate();
@@ -185,6 +225,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _selectedGender = null;
       _agreeToTerms = false;
       _termsError = null;
+      _passwordStrength = 0;
     });
   }
 
@@ -306,7 +347,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
                 // Field Password
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.only(top: 8.0),
                   child: TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
@@ -331,8 +372,39 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     obscureText: _obscurePassword,
                     validator: _validatePassword,
+                    onChanged: (value) {
+                      setState(() {
+                        _passwordStrength = _calculatePasswordStrength(value);
+                      });
+                    },
                   ),
                 ),
+                // Indikator kekuatan password
+                if (_passwordStrength > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6.0, bottom: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        LinearProgressIndicator(
+                          value: _passwordStrength / 3,
+                          minHeight: 6,
+                          borderRadius: BorderRadius.circular(3),
+                          backgroundColor: Colors.grey[300],
+                          color: _passwordStrengthColor,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Kekuatan password: $_passwordStrengthLabel',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _passwordStrengthColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 // Field Konfirmasi Password
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
