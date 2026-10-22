@@ -21,6 +21,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _isLoading = false;
 
   DateTime? _selectedDate;
+  String? _selectedGender;
 
   @override
   void dispose() {
@@ -145,7 +146,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               'Selamat, ${_nameController.text}!\n'
                   'Email: ${_emailController.text}\n'
                   'Nomor Telepon: ${_phoneController.text}\n'
-                  'Tanggal Lahir: ${_dateController.text}',
+                  'Tanggal Lahir: ${_dateController.text}\n'
+                  'Jenis Kelamin: $_selectedGender',
             ),
             actions: [
               TextButton(
@@ -173,6 +175,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _confirmPasswordController.clear();
     setState(() {
       _selectedDate = null;
+      _selectedGender = null;
     });
   }
 
@@ -256,6 +259,39 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     validator: (_) => _selectedDate == null
                         ? 'Tanggal lahir tidak boleh kosong'
+                        : null,
+                  ),
+                ),
+                // Field Jenis Kelamin
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Jenis Kelamin',
+                      prefixIcon: Icon(Icons.wc),
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Color(0xFFFAFAFA),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'Laki-laki',
+                        child: Text('Laki-laki'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Perempuan',
+                        child: Text('Perempuan'),
+                      ),
+                    ],
+                    onChanged: _isLoading
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _selectedGender = value;
+                            });
+                          },
+                    validator: (value) => value == null
+                        ? 'Jenis kelamin harus dipilih'
                         : null,
                   ),
                 ),
