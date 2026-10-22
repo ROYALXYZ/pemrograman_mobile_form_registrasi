@@ -12,17 +12,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _dateController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+
+  DateTime? _selectedDate;
+
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _dateController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -97,6 +102,28 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return null;
   }
 
+  // Latihan 2: pilih tanggal lahir
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime(now.year - 17, now.month, now.day),
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _selectedDate = picked;
+      _dateController.text = _formatDate(picked);
+    });
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day-$month-${date.year}';
+  }
+
   // Handler submit form
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
@@ -117,7 +144,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             content: Text(
               'Selamat, ${_nameController.text}!\n'
                   'Email: ${_emailController.text}\n'
-                  'Nomor Telepon: ${_phoneController.text}',
+                  'Nomor Telepon: ${_phoneController.text}\n'
+                  'Tanggal Lahir: ${_dateController.text}',
             ),
             actions: [
               TextButton(
@@ -140,8 +168,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _nameController.clear();
     _emailController.clear();
     _phoneController.clear();
+    _dateController.clear();
     _passwordController.clear();
     _confirmPasswordController.clear();
+    setState(() {
+      _selectedDate = null;
+    });
   }
 
   @override
@@ -205,6 +237,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   prefixIcon: Icons.phone,
                   keyboardType: TextInputType.phone,
                   validator: _validatePhone,
+                ),
+                // Field Tanggal Lahir
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    controller: _dateController,
+                    readOnly: true,
+                    onTap: _pickDate,
+                    decoration: const InputDecoration(
+                      labelText: 'Tanggal Lahir',
+                      hintText: 'Pilih tanggal lahir Anda',
+                      prefixIcon: Icon(Icons.cake),
+                      suffixIcon: Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Color(0xFFFAFAFA),
+                    ),
+                    validator: (_) => _selectedDate == null
+                        ? 'Tanggal lahir tidak boleh kosong'
+                        : null,
+                  ),
                 ),
                 // Field Password
                 Padding(
