@@ -22,6 +22,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   DateTime? _selectedDate;
   String? _selectedGender;
+  bool _agreeToTerms = false;
+  String? _termsError;
 
   @override
   void dispose() {
@@ -127,41 +129,46 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   // Handler submit form
   void _submitForm() {
-    if (_formKey.currentState!.validate()) {
+    final isFormValid = _formKey.currentState!.validate();
+    setState(() {
+      _termsError =
+          _agreeToTerms ? null : 'Anda harus menyetujui Syarat & Ketentuan';
+    });
+    if (!isFormValid || !_agreeToTerms) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+    // Simulasi proses registrasi
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
       setState(() {
-        _isLoading = true;
+        _isLoading = false;
       });
-      // Simulasi proses registrasi
-      Future.delayed(const Duration(seconds: 2), () {
-        if (!mounted) return;
-        setState(() {
-          _isLoading = false;
-        });
-        // Tampilkan dialog sukses
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Registrasi Berhasil'),
-            content: Text(
-              'Selamat, ${_nameController.text}!\n'
-                  'Email: ${_emailController.text}\n'
-                  'Nomor Telepon: ${_phoneController.text}\n'
-                  'Tanggal Lahir: ${_dateController.text}\n'
-                  'Jenis Kelamin: $_selectedGender',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _resetForm();
-                },
-                child: const Text('OK'),
-              ),
-            ],
+      // Tampilkan dialog sukses
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Registrasi Berhasil'),
+          content: Text(
+            'Selamat, ${_nameController.text}!\n'
+            'Email: ${_emailController.text}\n'
+            'Nomor Telepon: ${_phoneController.text}\n'
+            'Tanggal Lahir: ${_dateController.text}\n'
+            'Jenis Kelamin: $_selectedGender',
           ),
-        );
-      });
-    }
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _resetForm();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   // Reset form
@@ -176,6 +183,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     setState(() {
       _selectedDate = null;
       _selectedGender = null;
+      _agreeToTerms = false;
+      _termsError = null;
     });
   }
 
@@ -353,7 +362,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     validator: _validateConfirmPassword,
                   ),
                 ),
-                const SizedBox(height: 24),
+                // Checkbox syarat & ketentuan
+                CheckboxListTile(
+                  value: _agreeToTerms,
+                  onChanged: _isLoading
+                      ? null
+                      : (value) {
+                          setState(() {
+                            _agreeToTerms = value ?? false;
+                            if (_agreeToTerms) _termsError = null;
+                          });
+                        },
+                  title: const Text(
+                    'Saya setuju dengan Syarat & Ketentuan',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                if (_termsError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      _termsError!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
                 // Tombol Submit
                 ElevatedButton(
                   onPressed: _isLoading ? null : _submitForm,
